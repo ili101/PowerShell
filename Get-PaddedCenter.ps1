@@ -18,7 +18,7 @@
     param
     (
         [Parameter(Mandatory=$false, Position=0)]
-        [System.String]
+        [System.String[]]
         $Title = 'Start',
         
         [Parameter(Mandatory=$false, Position=1)]
@@ -34,6 +34,7 @@
         $Pad = '='
     )
     
+    [string]$Title = [string]::Join($Separator,$Title)
     $PadLengthFull = ($Width - $Title.Length - $Separator.Length*2)
     Write-Verbose -Message "PadLengthFull: $PadLengthFull"
     $Remainder  = 0 ; $PadLength = [system.math]::DivRem($PadLengthFull,2,[ref]$Remainder)
