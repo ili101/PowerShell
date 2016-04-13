@@ -15,6 +15,10 @@ Get-PaddedCenter
 ============================================== Start ===============================================
 ```
 ```PowerShell
+Get-PaddedCenter -Title 'End',(Get-Date)
+===================================== End 04/13/2016 17:19:10 ======================================
+```
+```PowerShell
 Get-PaddedCenter -Title 'Test' -Separator $null -Width 8 -Pad ([char]35)
 ##Test##
 ```
