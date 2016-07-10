@@ -24,7 +24,10 @@ function Get-Tail
         [Int32]$Tail = 10,
 
         [Parameter(Position = 2)]
-        [Int32]$RefreshRate = 100
+        [Int32]$RefreshRate = 100,
+
+        [Parameter(Position = 3)]
+        [string]$Filter
     )
     
     #check if pipeline or path variable
@@ -100,7 +103,10 @@ function Get-Tail
             #read out of the file until the EOF
             while (($Line = $File.Value.Reader.ReadLine()) -ne $null)
             {
-                $Line
+                if ($Filter -and $Line -like $Filter)
+                {
+                    $Line
+                }
             }
             #update the last max offset
             $File.Value.LastMaxOffset = $File.Value.Reader.BaseStream.Position
