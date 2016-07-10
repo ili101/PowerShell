@@ -44,7 +44,7 @@ function Get-Tail
     $Files = @{}
     foreach ($Path in $Paths)
     {
-        $Reader = New-Object -TypeName System.IO.StreamReader -ArgumentList (New-Object -TypeName IO.FileStream -ArgumentList ($Path, [System.IO.FileMode]::Open, [System.IO.FileAccess]::Read, [IO.FileShare]::ReadWrite))
+        $Reader = New-Object -TypeName System.IO.StreamReader -ArgumentList (New-Object -TypeName IO.FileStream -ArgumentList ($Path, [System.IO.FileMode]::Open, [System.IO.FileAccess]::Read, ([IO.FileShare]::Delete,([IO.FileShare]::ReadWrite)) ))
         #get end the file
         $LastMaxOffset = $Reader.BaseStream.Length
         #get encoding
@@ -103,7 +103,14 @@ function Get-Tail
             #read out of the file until the EOF
             while (($Line = $File.Value.Reader.ReadLine()) -ne $null)
             {
-                if ($Filter -and $Line -like $Filter)
+                if ($Filter)
+                {
+                    if ($Line -like $Filter)
+                    {
+                        $Line
+                    }
+                }
+                else
                 {
                     $Line
                 }
@@ -118,3 +125,4 @@ function Get-Tail
         Get-Tail -Path C:\Windows\WindowsUpdate.log,C:\Windows\win.ini
         Get-ChildItem -Path C:\Windows\win.ini,C:\Windows\*.log -Exclude PFRO.log | Get-Tail -Tail 5
 #>
+Get-Tail -Path 'D:\3.txt'
