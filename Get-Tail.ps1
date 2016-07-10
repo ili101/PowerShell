@@ -1,4 +1,4 @@
-﻿#requires -Version 3
+﻿#requires -Version 2
 
 function Get-Tail
 {
@@ -17,7 +17,7 @@ function Get-Tail
     [CmdletBinding()]
     param
     (
-        [Parameter(Mandatory, Position = 0,ValueFromPipeline=$true)]
+        [Parameter(Mandatory = $true, Position = 0,ValueFromPipeline = $true)]
         [string[]]$Path,
 
         [Parameter(Position = 1)]
@@ -30,7 +30,7 @@ function Get-Tail
     #check if pipeline or path variable
     if ($Input)
     {
-        [string[]]$Paths = $Input
+        [string[]]$Paths = @($Input)
     }
     else
     {
@@ -62,7 +62,15 @@ function Get-Tail
         foreach ($Path in $Paths)
         {
             Write-Host -ForegroundColor Green -Object $Path
-            Get-Content -Path $Path -Tail $Tail
+            if ($PSVersionTable.PSVersion.Major -gt 2)
+            {
+                Get-Content -Path $Path -Tail $Tail
+            }
+            else
+            {
+                Write-Warning -Message 'Tail option can be slow on PowerShell 2.0 set Tail to 0 to disable it'
+                Get-Content $Path | Select-Object -Last $Tail
+            }
         }
         $LastFile = $Path
     }
@@ -101,6 +109,6 @@ function Get-Tail
 }
 
 <#
-Get-Tail -Path C:\Windows\WindowsUpdate.log,C:\Windows\win.ini
-Get-ChildItem -Path C:\Windows\win.ini,C:\Windows\*.log -Exclude PFRO.log | Get-Tail -Tail 5
+        Get-Tail -Path C:\Windows\WindowsUpdate.log,C:\Windows\win.ini
+        Get-ChildItem -Path C:\Windows\win.ini,C:\Windows\*.log -Exclude PFRO.log | Get-Tail -Tail 5
 #>
