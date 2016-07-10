@@ -125,4 +125,3 @@ function Get-Tail
         Get-Tail -Path C:\Windows\WindowsUpdate.log,C:\Windows\win.ini
         Get-ChildItem -Path C:\Windows\win.ini,C:\Windows\*.log -Exclude PFRO.log | Get-Tail -Tail 5
 #>
-Get-Tail -Path 'D:\3.txt'
