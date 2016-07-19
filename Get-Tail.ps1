@@ -13,6 +13,10 @@ function Get-Tail
             number of lines to tail (0 for none)
             .PARAMETER RefreshRate
             Refresh interval
+            .PARAMETER Filter
+            Filter text -like format, * whildcard
+            .PARAMETER Wait
+            Waits for more output, end with Ctrl + C
     #>
     [CmdletBinding()]
     param
@@ -27,7 +31,11 @@ function Get-Tail
         [Int32]$RefreshRate = 100,
 
         [Parameter(Position = 3)]
-        [string]$Filter
+        [string]$Filter,
+
+        [Parameter(Position = 3)]
+        [switch]$Wait
+
     )
     
     #check if pipeline or path variable
@@ -67,12 +75,12 @@ function Get-Tail
             Write-Host -ForegroundColor Green -Object $Path
             if ($PSVersionTable.PSVersion.Major -gt 2)
             {
-                Get-Content -Path $Path -Tail $Tail
+                Get-Content -Path $Path -Tail $Tail | foreach {if (!$Filter -or $_ -like $Filter) {$_}}
             }
             else
             {
                 Write-Warning -Message 'Tail option can be slow on PowerShell 2.0 set Tail to 0 to disable it'
-                Get-Content $Path | Select-Object -Last $Tail
+                Get-Content $Path | Select-Object -Last $Tail | foreach {if (!$Filter -or $_ -like $Filter) {$_}}
             }
         }
         $LastFile = $Path
@@ -83,45 +91,41 @@ function Get-Tail
     }
     
     #tail new lines
-    :ReaderLoop while ($true)
+    if ($Wait)
     {
-        Start-Sleep -Milliseconds $RefreshRate
-        foreach ($File in $Files.GetEnumerator())
+        :ReaderLoop while ($true)
         {
-            #if the file size has not changed, idle
-            if ($File.Value.Reader.BaseStream.Length -eq $File.Value.LastMaxOffset)
+            Start-Sleep -Milliseconds $RefreshRate
+            foreach ($File in $Files.GetEnumerator())
             {
-                continue
-            }
-            
-            if ($LastFile -ne $File.name)
-            {
-                Write-Host -ForegroundColor Green -Object $File.name
-                $LastFile = $File.name
-            }
-            
-            #read out of the file until the EOF
-            while (($Line = $File.Value.Reader.ReadLine()) -ne $null)
-            {
-                if ($Filter)
+                #if the file size has not changed, idle
+                if ($File.Value.Reader.BaseStream.Length -eq $File.Value.LastMaxOffset)
                 {
-                    if ($Line -like $Filter)
+                    continue
+                }
+                
+                if ($LastFile -ne $File.name)
+                {
+                    Write-Host -ForegroundColor Green -Object $File.name
+                    $LastFile = $File.name
+                }
+                
+                #read out of the file until the EOF
+                while (($Line = $File.Value.Reader.ReadLine()) -ne $null)
+                {
+                    if (!$Filter -or $Line -like $Filter)
                     {
                         $Line
                     }
                 }
-                else
-                {
-                    $Line
-                }
+                #update the last max offset
+                $File.Value.LastMaxOffset = $File.Value.Reader.BaseStream.Position
             }
-            #update the last max offset
-            $File.Value.LastMaxOffset = $File.Value.Reader.BaseStream.Position
         }
     }
 }
 
 <#
         Get-Tail -Path C:\Windows\WindowsUpdate.log,C:\Windows\win.ini
-        Get-ChildItem -Path C:\Windows\win.ini,C:\Windows\*.log -Exclude PFRO.log | Get-Tail -Tail 5
+        Get-ChildItem -Path C:\Windows\win.ini,C:\Windows\*.log -Exclude PFRO.log | Get-Tail -Tail 5 -Filter *and* -Wait
 #>
