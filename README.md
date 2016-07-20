@@ -24,10 +24,10 @@ Get-PaddedCenter -Title 'Test' -Separator $null -Width 8 -Pad ([char]35)
 ```
 
 ## Get-Tail
-tail files and wait, support multiple files unlike Get-Content -Wait
+tail files and waits, support multiple files unlike Get-Content -Wait
 ##### Examples
 ```PowerShell
 Get-Tail -Path C:\Windows\WindowsUpdate.log,C:\Windows\win.ini
-Get-ChildItem -Path C:\Windows\win.ini,C:\Windows\*.log -Exclude PFRO.log | Get-Tail -Tail 5
+Get-ChildItem -Path C:\Windows\win.ini,C:\Windows\*.log -Exclude PFRO.log | Get-Tail -Tail 5 -wait
 ```
 ![](https://raw.githubusercontent.com/ili101/PowerShell/master/Examples/Example1.png)
