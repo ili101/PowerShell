@@ -1,11 +1,29 @@
 # PowerShell
 PowerShell stuff
 
-## Invoke-RestMethod -UTF8
-A wrapper for Invoke-RestMethod that add a switch parameter named UTF8 that decode the output as UTF-8
+## Contributing
+If you fund a bug or added functionality or anything else just fork and send pull requests. Thank you!
 
-##### Invoke-RestMethodUTF8Post (Replaced by Invoke-RestMethod -UTF8)
-Function to replace Invoke-RestMethod and Invoke-WebRequest in case the response is in UTF-8 / Unicode and you get gibberish in the non-English characters.<br>Support Xml or String imputes and outposts.
+## Join-Object (Beta)
+Join-Object LINQ Edition.
+Aims to provide the exact functibility of https://github.com/RamblingCookieMonster/PowerShell/blob/master/Join-Object.ps1 with much better performance.
+Initial testing shows at last 100 times faster.
+##### Explanation and usage Examples:
+See RamblingCookieMonster guide http://ramblingcookiemonster.github.io/Join-Object/ and [Join-Object Test.ps1](https://github.com/ili101/PowerShell/blob/master/Tests/Join-Object%20Test.ps1)
+##### Additional functoriality:
+* Supports DataTable object type.
+* Additional parameters -ExcludeLeftProperties and -ExcludeRightProperties.
+* Additional parameter -PassThru, If added changes the original Left Object
+
+##### To do and missing functoriality:
+* ~~Add -Prefix and -Suffix Parameters.~~
+* Add -Type Parameter (Hardcoded to AllInLeft - Left join).
+* Optimize performance
+
+## Invoke-RestMethod -UTF8
+A wrapper for Invoke-RestMethod that add a switch parameter named UTF8 that decode the output as UTF-8<br>
+In case the response is in UTF-8 / Unicode and you get gibberish in the non-English characters.<br>Support Xml or String imputes and outposts.
+<br>Invoke-RestMethodUTF8Post (Replaced by Invoke-RestMethod -UTF8)
 
 ## Get-PaddedCenter
 Pad the text from left and right
