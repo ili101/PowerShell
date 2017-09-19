@@ -14,6 +14,7 @@ See RamblingCookieMonster guide http://ramblingcookiemonster.github.io/Join-Obje
 * Supports DataTable object type.
 * Additional parameters -ExcludeLeftProperties and -ExcludeRightProperties.
 * Additional parameter -PassThru, If added changes the original Left Object
+* Converts DBNull to $null
 
 ##### To do and missing functoriality:
 * ~~Add -Prefix and -Suffix Parameters.~~

@@ -351,7 +351,11 @@ function Join-Object
                 # Add RightLine to LeftLine
                 foreach ($item in $SelectedRightProperties.GetEnumerator())
                 {
-                    $LeftLine.PSObject.Properties.Add( [Management.Automation.PSNoteProperty]::new($item.Value,$RightLine.($item.Key)) )
+                    if (($Value = $RightLine.($item.Key)) -is [DBNull])
+                    {
+                        $Value = $null
+                    }
+                    $LeftLine.PSObject.Properties.Add( [Management.Automation.PSNoteProperty]::new($item.Value,$Value) )
                 }
             }
         }
@@ -367,11 +371,19 @@ function Join-Object
             $Row = [ordered]@{}
             foreach ($item in $SelectedLeftProperties.GetEnumerator())
             {
-                $Row.Add($item.Value,$LeftLine.($item.Key))
+                if (($Value = $LeftLine.($item.Key)) -is [DBNull])
+                {
+                    $Value = $null
+                }
+                $Row.Add($item.Value,$Value)
             }
             foreach ($item in $SelectedRightProperties.GetEnumerator())
             {
-                $Row.Add($item.Value,$RightLine.($item.Key))
+                if (($Value = $RightLine.($item.Key)) -is [DBNull])
+                {
+                    $Value = $null
+                }
+                $Row.Add($item.Value,$Value)
             }
             [PSCustomObject]$Row
         }
