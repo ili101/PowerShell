@@ -1,4 +1,4 @@
-﻿# Join-Object
+# Join-Object
 ## 0.1.2 - 2018/03/05 (Beta)
 ### Added
 * **-Type** parameter that supports "AllInLeft" and "OnlyIfInBoth".
@@ -15,5 +15,5 @@
 ## 0.0.0 - 2017-07-28 (Alpha)
 * Join-Object LINQ Edition concept code.
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTc5ODgwNzM1OF19
+eyJoaXN0b3J5IjpbNDM2NDI2NDY5XX0=
 -->
