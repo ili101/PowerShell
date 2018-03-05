@@ -211,10 +211,13 @@ function Join-Object
         $Right,
 
         [Parameter(Mandatory = $true)]
-        [string] $LeftJoinProperty,
+        [string[]] $LeftJoinProperty,
 
         [Parameter(Mandatory = $true)]
-        [string] $RightJoinProperty,
+        [string[]] $RightJoinProperty,
+
+        [ScriptBlock]$RightJoinScript,
+        [ScriptBlock]$LeftJoinScript,
 
         [ValidateScript({ $_ -is [Collections.Hashtable] -or $_ -is [string] -or $_ -is [Collections.Specialized.OrderedDictionary]})]
         $LeftProperties = '*',
@@ -235,7 +238,15 @@ function Join-Object
         [string]$Suffix,
         [switch]$PassThru
     )
-
+    if ($Left -is [PSCustomObject])
+    {
+        $Left = @($Left)
+    }
+    if ($Right -is [PSCustomObject])
+    {
+        $Right = @($Right)
+    }
+    
     function Get-Properties ($ObjectProperties,$SelectProperties,$ExcludeProperties,$Prefix,$Suffix)
     {
         $Properties = [ordered]@{}
@@ -278,14 +289,42 @@ function Join-Object
         $SelectedRightProperties = Get-Properties -ObjectProperties $Right[0].PSObject.Properties.Name -SelectProperties $RightProperties -ExcludeProperties (@($ExcludeRightProperties)+@($RightJoinProperty) -ne $null) -Prefix $Prefix -Suffix $Suffix
     }
 
-    [System.Func[System.Object, string]]$LeftJoinFunction = {
-    	param ($LeftLine) 
-    	$LeftLine.$LeftJoinProperty
+    if ($LeftJoinScript)
+    {
+        [System.Func[System.Object, string]]$LeftJoinFunction = $LeftJoinScript
+    }
+    elseif ($LeftJoinProperty.Count -gt 1)
+    {
+        [System.Func[System.Object, string]]$LeftJoinFunction = {
+    	    param ($LeftLine) 
+            $LeftLine | Select-Object -Property $LeftJoinProperty
+        }
+    }
+    else
+    {
+        [System.Func[System.Object, string]]$LeftJoinFunction = {
+    	    param ($LeftLine) 
+    	    $LeftLine.$LeftJoinProperty
+        }
     }
 
-    [System.Func[System.Object, string]]$RightJoinFunction = {
-    	param ($RightLine) 
-    	$RightLine.$RightJoinProperty
+    if ($RightJoinScript)
+    {
+        [System.Func[System.Object, string]]$RightJoinFunction = $RightJoinScript
+    }
+    elseif ($RightJoinProperty.Count -gt 1)
+    {
+        [System.Func[System.Object, string]]$RightJoinFunction = {
+    	    param ($RightLine) 
+    	    $RightLine | Select-Object -Property $RightJoinProperty
+        }
+    }
+    else
+    {
+        [System.Func[System.Object, string]]$RightJoinFunction = {
+    	    param ($RightLine) 
+    	    $RightLine.$RightJoinProperty
+        }
     }
 
     if ($PassThru)
@@ -315,77 +354,156 @@ function Join-Object
             }
         }
 
-        [System.Func[System.Object, [Collections.Generic.IEnumerable[System.Object]], System.Object]]$query = {
-        	param(
-        		$LeftLine,
-        		$RightLineEnumerable
-        	)
-            $RightLine = [System.Linq.Enumerable]::SingleOrDefault($RightLineEnumerable)
+        if ($Type -eq 'OnlyIfInBoth')
+        {
+            [System.Func[System.Object, [System.Object], System.Object]]$query = {
+        	    param(
+        		    $LeftLine,
+        		    $RightLine
+        	    )
 
-            if ($LeftLine -is [DataRow])
-            {
-                # Add RightLine to LeftLine
-                foreach ($item in $SelectedRightProperties.GetEnumerator())
+                if ($LeftLine -is [DataRow])
                 {
-                    $LeftLine.($item.Value) = $RightLine.($item.Key)
+                    # Add RightLine to LeftLine
+                    foreach ($item in $SelectedRightProperties.GetEnumerator())
+                    {
+                        $LeftLine.($item.Value) = $RightLine.($item.Key)
+                    }
+                }
+                else # PSCustomObject
+                {
+                    # Add to LeftLine (Rename)
+                    foreach ($item in $SelectedLeftProperties.GetEnumerator())
+                    {
+                        if ($item.Value -notin $LeftLine.PSObject.Properties.Name)
+                        {
+                            $LeftLine.PSObject.Properties.Add( [Management.Automation.PSNoteProperty]::new($item.Value,$LeftLine.($item.Key)) )
+                        }
+                    }
+                    # Remove from LeftLine
+                    foreach ($item in $LeftLine.PSObject.Properties.Name)
+                    {
+                        if ($item -notin $SelectedLeftProperties.Values)
+                        {
+                            $LeftLine.PSObject.Properties.Remove($item)
+                        }
+                    }
+                    # Add RightLine to LeftLine
+                    foreach ($item in $SelectedRightProperties.GetEnumerator())
+                    {
+                        if (($Value = $RightLine.($item.Key)) -is [DBNull])
+                        {
+                            $Value = $null
+                        }
+                        $LeftLine.PSObject.Properties.Add( [Management.Automation.PSNoteProperty]::new($item.Value,$Value) )
+                    }
                 }
             }
-            else # PSCustomObject
-            {
-                # Add to LeftLine (Rename)
-                foreach ($item in $SelectedLeftProperties.GetEnumerator())
+        }
+        else
+        {
+            [System.Func[System.Object, [Collections.Generic.IEnumerable[System.Object]], System.Object]]$query = {
+        	    param(
+        		    $LeftLine,
+        		    $RightLineEnumerable
+        	    )
+                $RightLine = [System.Linq.Enumerable]::SingleOrDefault($RightLineEnumerable)
+
+                if ($LeftLine -is [DataRow])
                 {
-                    if ($item.Value -notin $LeftLine.PSObject.Properties.Name)
+                    # Add RightLine to LeftLine
+                    foreach ($item in $SelectedRightProperties.GetEnumerator())
                     {
-                        $LeftLine.PSObject.Properties.Add( [Management.Automation.PSNoteProperty]::new($item.Value,$LeftLine.($item.Key)) )
+                        $LeftLine.($item.Value) = $RightLine.($item.Key)
                     }
                 }
-                # Remove from LeftLine
-                foreach ($item in $LeftLine.PSObject.Properties.Name)
+                else # PSCustomObject
                 {
-                    if ($item -notin $SelectedLeftProperties.Values)
+                    # Add to LeftLine (Rename)
+                    foreach ($item in $SelectedLeftProperties.GetEnumerator())
                     {
-                        $LeftLine.PSObject.Properties.Remove($item)
+                        if ($item.Value -notin $LeftLine.PSObject.Properties.Name)
+                        {
+                            $LeftLine.PSObject.Properties.Add( [Management.Automation.PSNoteProperty]::new($item.Value,$LeftLine.($item.Key)) )
+                        }
                     }
-                }
-                # Add RightLine to LeftLine
-                foreach ($item in $SelectedRightProperties.GetEnumerator())
-                {
-                    if (($Value = $RightLine.($item.Key)) -is [DBNull])
+                    # Remove from LeftLine
+                    foreach ($item in $LeftLine.PSObject.Properties.Name)
                     {
-                        $Value = $null
+                        if ($item -notin $SelectedLeftProperties.Values)
+                        {
+                            $LeftLine.PSObject.Properties.Remove($item)
+                        }
                     }
-                    $LeftLine.PSObject.Properties.Add( [Management.Automation.PSNoteProperty]::new($item.Value,$Value) )
+                    # Add RightLine to LeftLine
+                    foreach ($item in $SelectedRightProperties.GetEnumerator())
+                    {
+                        if (($Value = $RightLine.($item.Key)) -is [DBNull])
+                        {
+                            $Value = $null
+                        }
+                        $LeftLine.PSObject.Properties.Add( [Management.Automation.PSNoteProperty]::new($item.Value,$Value) )
+                    }
                 }
             }
         }
     }
     else
     {
-        [System.Func[System.Object, [Collections.Generic.IEnumerable[System.Object]], System.Object]]$query = {
-        	param(
-        		$LeftLine,
-        		$RightLineEnumerable
-        	)
-            $RightLine = [System.Linq.Enumerable]::SingleOrDefault($RightLineEnumerable)
-            $Row = [ordered]@{}
-            foreach ($item in $SelectedLeftProperties.GetEnumerator())
-            {
-                if (($Value = $LeftLine.($item.Key)) -is [DBNull])
+        if ($Type -eq 'OnlyIfInBoth')
+        {        
+            [System.Func[System.Object, [System.Object], System.Object]]$query = {
+        	    param(
+        		    $LeftLine,
+        		    $RightLine
+        	    )
+                $Row = [ordered]@{}
+                foreach ($item in $SelectedLeftProperties.GetEnumerator())
                 {
-                    $Value = $null
+                    if (($Value = $LeftLine.($item.Key)) -is [DBNull])
+                    {
+                        $Value = $null
+                    }
+                    $Row.Add($item.Value,$Value)
                 }
-                $Row.Add($item.Value,$Value)
-            }
-            foreach ($item in $SelectedRightProperties.GetEnumerator())
-            {
-                if (($Value = $RightLine.($item.Key)) -is [DBNull])
+                foreach ($item in $SelectedRightProperties.GetEnumerator())
                 {
-                    $Value = $null
+                    if (($Value = $RightLine.($item.Key)) -is [DBNull])
+                    {
+                        $Value = $null
+                    }
+                    $Row.Add($item.Value,$Value)
                 }
-                $Row.Add($item.Value,$Value)
+                [PSCustomObject]$Row
             }
-            [PSCustomObject]$Row
+        }
+        else
+        {
+            [System.Func[System.Object, [Collections.Generic.IEnumerable[System.Object]], System.Object]]$query = {
+        	    param(
+        		    $LeftLine,
+        		    $RightLineEnumerable
+        	    )
+                $RightLine = [System.Linq.Enumerable]::SingleOrDefault($RightLineEnumerable)
+                $Row = [ordered]@{}
+                foreach ($item in $SelectedLeftProperties.GetEnumerator())
+                {
+                    if (($Value = $LeftLine.($item.Key)) -is [DBNull])
+                    {
+                        $Value = $null
+                    }
+                    $Row.Add($item.Value,$Value)
+                }
+                foreach ($item in $SelectedRightProperties.GetEnumerator())
+                {
+                    if (($Value = $RightLine.($item.Key)) -is [DBNull])
+                    {
+                        $Value = $null
+                    }
+                    $Row.Add($item.Value,$Value)
+                }
+                [PSCustomObject]$Row
+            }
         }
     }
 
@@ -406,9 +524,19 @@ function Join-Object
         $RightNew = $Right
     }
 
-    [System.Linq.Enumerable]::ToArray(
-    	[System.Linq.Enumerable]::GroupJoin($LeftNew, $RightNew, $LeftJoinFunction, $RightJoinFunction, $query)
-    )
+    if ($Type -eq 'OnlyIfInBoth')
+    {
+        [System.Linq.Enumerable]::ToArray(
+    	    [System.Linq.Enumerable]::Join($LeftNew, $RightNew, $LeftJoinFunction, $RightJoinFunction, $query)
+        )
+    }
+    else
+    {
+        [System.Linq.Enumerable]::ToArray(
+    	    [System.Linq.Enumerable]::GroupJoin($LeftNew, $RightNew, $LeftJoinFunction, $RightJoinFunction, $query)
+        )
+    }
+
     if ($PassThru)
     {
         $Left

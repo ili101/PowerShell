@@ -1,4 +1,4 @@
-# PowerShell
+﻿# PowerShell
 PowerShell stuff
 
 ## Contributing
@@ -15,11 +15,10 @@ See RamblingCookieMonster guide http://ramblingcookiemonster.github.io/Join-Obje
 * Additional parameters -ExcludeLeftProperties and -ExcludeRightProperties.
 * Additional parameter -PassThru, If added changes the original Left Object
 * Converts DBNull to $null
-
 ##### To do and missing functoriality:
-* ~~Add -Prefix and -Suffix Parameters.~~
-* Add -Type Parameter (Hardcoded to AllInLeft - Left join).
+* -Type Parameter supports for "AllInBoth" ~~and "AllInRight"~~.
 * Optimize performance
+* Option to output as "DataTable"
 
 ## Invoke-RestMethod -UTF8
 A wrapper for Invoke-RestMethod that add a switch parameter named UTF8 that decode the output as UTF-8<br>
