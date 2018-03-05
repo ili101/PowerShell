@@ -1,5 +1,4 @@
-
-
+lk 
 ﻿# Join-Object
 ## 0.1.2 - 2018/03/05 (Beta)
 ### Added
@@ -17,5 +16,5 @@
 ## 0.0.0 - 2017-07-28 (Alpha)
 * Join-Object LINQ Edition concept code.
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMTgzMjk0OTA5NF19
+eyJoaXN0b3J5IjpbLTE5MjkzMTI0MjNdfQ==
 -->
