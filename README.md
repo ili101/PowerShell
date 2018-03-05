@@ -1,4 +1,4 @@
-# PowerShell
+﻿# PowerShell
 PowerShell stuff
 
 ## Contributing
@@ -50,5 +50,5 @@ Get-ChildItem -Path C:\Windows\win.ini,C:\Windows\*.log -Exclude PFRO.log | Get-
 ```
 ![](https://raw.githubusercontent.com/ili101/PowerShell/master/Examples/Example1.png)
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbODA4NTg5NTE5XX0=
+eyJoaXN0b3J5IjpbLTE3MDg4NDU5NTRdfQ==
 -->
