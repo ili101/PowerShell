@@ -1,4 +1,5 @@
-﻿# PowerShell
+﻿
+# PowerShell
 PowerShell stuff
 
 ## Contributing
@@ -8,17 +9,13 @@ If you fund a bug or added functionality or anything else just fork and send pul
 Join-Object LINQ Edition.
 Aims to provide the exact functibility of https://github.com/RamblingCookieMonster/PowerShell/blob/master/Join-Object.ps1 with much better performance.
 Initial testing shows at last 100 times faster.
-##### Explanation and usage Examples:
-See RamblingCookieMonster guide http://ramblingcookiemonster.github.io/Join-Object/ and [Join-Object Test.ps1](https://github.com/ili101/PowerShell/blob/master/Tests/Join-Object%20Test.ps1)
-##### Additional functoriality:
-* Supports DataTable object type.
-* Additional parameters -ExcludeLeftProperties and -ExcludeRightProperties.
-* Additional parameter -PassThru, If added changes the original Left Object
-* Converts DBNull to $null
-##### To do and missing functoriality:
-* -Type Parameter supports for "AllInBoth" ~~and "AllInRight"~~.
-* Optimize performance
-* Option to output as "DataTable"
+
+See https://github.com/ili101/Join-Object
+
+# Split-MotionPhoto
+Split Samsung combo Motion Photo files (JPG) to separate JPG and MP4 files
+
+See https://github.com/ili101/Split-MotionPhoto
 
 ## Invoke-RestMethod -UTF8
 A wrapper for Invoke-RestMethod that add a switch parameter named UTF8 that decode the output as UTF-8<br>
