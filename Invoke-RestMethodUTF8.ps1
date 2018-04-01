@@ -1,10 +1,11 @@
-﻿    # Function to help post HTTP request to web service
+    # Function to help post HTTP request to web service
     Function Invoke-RestMethodUTF8Post
     {    
         param
         (
             [parameter(Mandatory = $True)][String]$Uri,
             [ValidateScript({$_.GetType().Name -in 'XmlDocument', 'XmlElement', 'String'})]$Body,
+            [switch]$UseDefaultCredentials,
             [int] $TimeoutSec = -1
         )
         if ($Body.GetType().Name -in 'XmlDocument', 'XmlElement')
@@ -22,6 +23,10 @@
         $WebRequest.Method = 'POST'
         $WebRequest.ContentType = 'application/x-www-form-urlencoded'
         $WebRequest.ContentLength = $Buffer.Length
+        if ($UseDefaultCredentials)
+        {
+        $WebRequest.UseDefaultCredentials = $True
+        }
     
         $RequestStream = $WebRequest.GetRequestStream()
         $RequestStream.Write($Buffer, 0, $Buffer.Length)
